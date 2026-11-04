@@ -1,4 +1,12 @@
 document.addEventListener("DOMContentLoaded", function () {
+  // Прибрати required з усіх полів форми
+  document
+    .querySelectorAll("#briefForm [required]")
+    .forEach(function (el) {
+      el.removeAttribute("required");
+    });
+
+  initAuthenticatedUserInfo();
   initAuthenticatedUserInfo();
   
   initDynamicFields();
@@ -547,33 +555,33 @@ function initDownloadWordButton() {
 
   button.addEventListener("click", function () {
     // 1. Перевірка стандартних required-полів
-    if (!form.checkValidity()) {
-      alert("Заповніть усі обов'язкові поля перед завантаженням Word.");
+    // if (!form.checkValidity()) {
+    //   alert("Заповніть усі обов'язкові поля перед завантаженням Word.");
 
-      // Показує стандартні браузерні підказки біля незаповнених полів
-      form.reportValidity();
+    //   // Показує стандартні браузерні підказки біля незаповнених полів
+    //   form.reportValidity();
 
-      return;
-    }
+    //   return;
+    // }
 
     // 2. Перевірка обов'язкових checkbox-груп
-    if (
-      !validateCheckboxGroup(
-        "ipItems",
-        "Оберіть варіант у блоці «Інтелектуальна власність».",
-      )
-    ) {
-      return;
-    }
+    // if (
+    //   !validateCheckboxGroup(
+    //     "ipItems",
+    //     "Оберіть варіант у блоці «Інтелектуальна власність».",
+    //   )
+    // ) {
+    //   return;
+    // }
 
-    if (
-      !validateCheckboxGroup(
-        "fileLinks",
-        "Оберіть варіант у блоці «Файли та посилання».",
-      )
-    ) {
-      return;
-    }
+    // if (
+    //   !validateCheckboxGroup(
+    //     "fileLinks",
+    //     "Оберіть варіант у блоці «Файли та посилання».",
+    //   )
+    // ) {
+    //   return;
+    // }
 
     // 3. Якщо все заповнено, формуємо Word
     const data = collectBriefData();
