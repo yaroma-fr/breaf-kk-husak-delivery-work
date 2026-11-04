@@ -574,55 +574,45 @@
 
         <!-- 6. Вартість і порядок оплати -->
         <section class="form-section" id="section-cost">
-          <h2>6. Вартість і порядок оплати</h2>
+  <h2>6. Вартість і порядок оплати</h2>
 
-          <div class="choice-card">
-            <h3>Вартість послуг з українським підрядником</h3>
+  <div class="choice-card">
+    <div class="form-row">
+      <label>6.1. Місце реєстрації підрядника</label>
 
-            <div class="form-row">
-              <label for="costNoVat">Загальна вартість без ПДВ </label>
-              <input id="costNoVat" name="costNoVat" type="text" required />
-            </div>
+      <div class="radio-group horizontal">
+        <label>
+          <input type="radio" name="contractorCountry" value="Україна" required />
+          Україна
+        </label>
 
-            <div class="form-row hidden" id="vatAmountRow">
-              <label for="vatAmount">ПДВ</label>
-              <input id="vatAmount" name="vatAmount" type="text" />
-            </div>
+        <label>
+          <input type="radio" name="contractorCountry" value="Інша країна" />
+          Інша країна
+        </label>
+      </div>
+    </div>
+  </div>
 
-            <div class="form-row hidden" id="costWithVatRow">
-              <label for="costWithVat">Загальна вартість з ПДВ</label>
-              <input id="costWithVat" name="costWithVat" type="text" />
-            </div>
+  <div class="choice-card hidden" id="costBlock">
+    <h3>6.2. Вартість послуг</h3>
 
-            <div class="form-row">
-              <label for="currency">Валюта </label>
-              <input
-                id="currency"
-                name="currency"
-                type="text"
-                placeholder="UAH, USD, EUR"
-                required
-              />
-            </div>
-          </div>
-          <div class="choice-card">
-            <h3>Вартість послуг з іноземним підрядником</h3>
-            <div class="form-row">
-              <label for="foreignCost">Загальна вартість послуг:</label>
-              <input id="foreignCost" name="foreignCost" type="text" />
-            </div>
+    <div class="form-row">
+      <label for="costAmount" id="costAmountLabel">Сума</label>
+      <input id="costAmount" name="costAmount" type="text" />
+    </div>
 
-            <div class="form-row">
-              <label for="foreignCurrency">Валюта</label>
-              <input
-                id="foreignCurrency"
-                name="foreignCurrency"
-                type="text"
-                placeholder="USD, EUR, CZK"
-              />
-            </div>
-          </div>
-        </section>
+    <div class="form-row">
+      <label for="currency">Валюта</label>
+      <input
+        id="currency"
+        name="currency"
+        type="text"
+        placeholder="UAH, USD, EUR"
+      />
+    </div>
+  </div>
+</section>
 
         <!-- Табличка- порядок оплати -->
         <section class="form-section" id="section-payments">

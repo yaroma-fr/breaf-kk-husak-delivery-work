@@ -121,23 +121,14 @@ function initDynamicFields() {
       });
     });
 
-  // ПДВ
-  document
-    .querySelectorAll('input[name="contractorVat"]')
-    .forEach(function (radio) {
-      radio.addEventListener("change", function () {
-        const value = getRadioValue("contractorVat");
-        const isVatPayer = value === "Так";
+  // Місце реєстрації підрядника + ПДВ -> поля вартості
+      document
+        .querySelectorAll('input[name="contractorCountry"], input[name="contractorVat"]')
+        .forEach(function (radio) {
+          radio.addEventListener("change", updateCostFields);
+        });
 
-        showElementById("vatAmountRow", isVatPayer);
-        showElementById("costWithVatRow", isVatPayer);
-
-        if (!isVatPayer) {
-          document.getElementById("vatAmount").value = "";
-          document.getElementById("costWithVat").value = "";
-        }
-      });
-    });
+      updateCostFields();
 
   // Юридична особа
   document
@@ -195,6 +186,41 @@ function initDynamicFields() {
         );
       });
     });
+}
+
+function getCostLabel() {
+  const country = getRadioValue("contractorCountry");
+  const vat = getRadioValue("contractorVat");
+
+  if (country === "Інша країна") {
+    return "Повна сума до сплати";
+  }
+
+  if (country === "Україна" && vat === "Так") {
+    return "Загальна вартість з ПДВ";
+  }
+
+  if (country === "Україна" && vat === "Ні") {
+    return "Загальна вартість без ПДВ";
+  }
+
+  return ""; // ще не обрано достатньо відповідей
+}
+
+function updateCostFields() {
+  const label = getCostLabel();
+  const labelElement = document.getElementById("costAmountLabel");
+
+  showElementById("costBlock", label !== "");
+
+  if (labelElement && label) {
+    labelElement.textContent = label;
+  }
+
+  if (!label) {
+    document.getElementById("costAmount").value = "";
+    document.getElementById("currency").value = "";
+  }
 }
 
 function initExclusiveCheckboxGroup(groupName, noneValue, afterChange) {
@@ -443,13 +469,10 @@ function collectBriefData() {
     stages: collectStages(),
 
     cost: {
-      costUkr: getValue("costUkr"),
-      costNoVat: getValue("costNoVat"),
-      vatAmount: getValue("vatAmount"),
-      costWithVat: getValue("costWithVat"),
+      country: getRadioValue("contractorCountry"),
+      amountLabel: getCostLabel(),
+      amount: getValue("costAmount"),
       currency: getValue("currency"),
-      foreignCost: getValue("foreignCost"),
-      foreignCurrency: getValue("foreignCurrency"),
     },
 
     payments: collectPayments(),
@@ -854,53 +877,30 @@ function buildWordDocumentHtml(data) {
         : ""
     }
 
-    <h2>6. Вартість і порядок оплати</h2>
-
-    <h3>Вартість послуг з українським підрядником</h3>
+        <h2>6. Вартість і порядок оплати</h2>
 
     <table>
         <tr>
-            <td class="label">Загальна вартість без ПДВ</td>
-            <td class="value">${escapeHtml(data.cost.costNoVat)}</td>
+            <td class="label">6.1. Місце реєстрації підрядника</td>
+            <td class="value">${escapeHtml(data.cost.country)}</td>
         </tr>
 
         ${
-          data.contractor.contractorVat === "Так"
+          data.cost.amountLabel
             ? `
         <tr>
-            <td class="label">ПДВ</td>
-            <td class="value">${escapeHtml(data.cost.vatAmount)}</td>
+            <td class="label">6.2. ${escapeHtml(data.cost.amountLabel)}</td>
+            <td class="value">${escapeHtml(data.cost.amount)}</td>
         </tr>
-
-        <tr>
-            <td class="label">Загальна вартість з ПДВ</td>
-            <td class="value">${escapeHtml(data.cost.costWithVat)}</td>
-        </tr>
-        `
-            : ""
-        }
 
         <tr>
             <td class="label">Валюта</td>
             <td class="value">${escapeHtml(data.cost.currency)}</td>
         </tr>
+        `
+            : ""
+        }
     </table>
-    
-    <h3>Вартість послуг з іноземним підрядником</h3>
-    
-    <table>
-        <tr>
-            <td class="label">Загальна вартість послуг</td>
-            <td class="value">${escapeHtml(data.cost.foreignCost)}</td>
-        </tr>
-
-        <tr>
-            <td class="label">Валюта</td>
-            <td class="value">${escapeHtml(data.cost.foreignCurrency)}</td>
-        </tr>
-    </table>
-
-    <h2>Порядок оплати</h2>
 
     ${buildPaymentsWordTable(data.payments)}
 
