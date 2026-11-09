@@ -1,27 +1,84 @@
 /* ================================
    COLOR SYSTEM
+
+   Форма 1 (за замовчуванням): Indigo + Violet
+   Форма 2: додайте <body data-theme="teal"> → Deep Teal + Coral
+
+   Усі кольори живуть тільки тут, у змінних.
 ================================ */
 
 :root {
-  --primary: #111827;
-  --secondary: #e5e7eb;
-  --accent: #84cc16;
+  /* Базові */
+  --primary: #1e1b4b;          /* заголовки, шапки таблиць, темні блоки */
+  --secondary: #e0e7ff;        /* вторинні кнопки, світлий текст на темному */
+  --secondary-hover: #eef2ff;
+
+  --accent: #7c3aed;           /* кнопки, фокус, чекбокси */
+  --accent-hover: #6d28d9;
+  --accent-bright: #a78bfa;    /* акцент на темному фоні (смужка h2, eyebrow) */
+  --accent-soft: #f5f3ff;      /* світла підсвітка при hover */
+  --on-accent: #ffffff;        /* текст на кнопці з акцентом */
 
   --white: #ffffff;
-  --text-dark: #111827;
-  --text-muted: #6b7280;
-  --border: #d1d5db;
+  --text-dark: #1e1b4b;
+  --text-muted: #6b6a8a;
+  --border: #ddd9f0;
 
   --surface: #ffffff;
-  --surface-soft: #f9fafb;
-  --surface-dark: #1f2937;
+  --surface-soft: #faf9ff;
+  --surface-dark: #312e81;
 
   --danger: #dc2626;
-  --focus: rgba(132, 204, 22, 0.35);
+  --focus: rgba(124, 58, 237, 0.28);
+
+  /* Фон сторінки */
+  --bg-glow-1: rgba(139, 92, 246, 0.35);
+  --bg-glow-2: rgba(56, 189, 248, 0.18);
+  --bg-from: #1e1b4b;
+  --bg-mid: #312e81;
+  --bg-to: #181638;
+
+  /* Темні панелі (hero, кнопки внизу) */
+  --panel-dark: rgba(30, 27, 75, 0.88);
+  --panel-line: rgba(224, 231, 255, 0.18);
 
   --radius-lg: 22px;
   --radius-md: 14px;
-  --shadow-soft: 0 20px 50px rgba(17, 24, 39, 0.18);
+  --shadow-soft: 0 20px 50px rgba(15, 12, 50, 0.28);
+}
+
+/* ---------- Форма 2: Deep Teal + Coral ---------- */
+
+[data-theme="teal"] {
+  --primary: #042f2e;
+  --secondary: #ccfbf1;
+  --secondary-hover: #e6fffa;
+
+  --accent: #ff7a59;
+  --accent-hover: #ff9478;
+  --accent-bright: #ffb199;
+  --accent-soft: #fff1ec;
+  --on-accent: #2a0e08;
+
+  --text-dark: #042f2e;
+  --text-muted: #5b7a77;
+  --border: #d3e3e0;
+
+  --surface-soft: #f6fbfa;
+  --surface-dark: #115e59;
+
+  --focus: rgba(255, 122, 89, 0.32);
+
+  --bg-glow-1: rgba(45, 212, 191, 0.28);
+  --bg-glow-2: rgba(255, 122, 89, 0.20);
+  --bg-from: #042f2e;
+  --bg-mid: #0f4f4b;
+  --bg-to: #03231f;
+
+  --panel-dark: rgba(4, 47, 46, 0.88);
+  --panel-line: rgba(204, 251, 241, 0.18);
+
+  --shadow-soft: 0 20px 50px rgba(2, 30, 28, 0.30);
 }
 
 /* ================================
@@ -42,12 +99,10 @@ body {
   font-family: "Segoe UI", Arial, sans-serif;
   color: var(--text-dark);
   background:
-    radial-gradient(
-      circle at top left,
-      rgba(132, 204, 22, 0.18),
-      transparent 35%
-    ),
-    linear-gradient(135deg, #111827 0%, #1f2937 45%, #111827 100%);
+    radial-gradient(circle at top left, var(--bg-glow-1), transparent 40%),
+    radial-gradient(circle at bottom right, var(--bg-glow-2), transparent 40%),
+    linear-gradient(135deg, var(--bg-from) 0%, var(--bg-mid) 50%, var(--bg-to) 100%);
+  background-attachment: fixed;
 }
 
 /* ================================
@@ -69,15 +124,17 @@ body {
   margin-bottom: 28px;
   padding: 36px;
   border-radius: var(--radius-lg);
-  background: rgba(17, 24, 39, 0.92);
+  background: var(--panel-dark);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   color: var(--white);
-  border: 1px solid rgba(229, 231, 235, 0.18);
+  border: 1px solid var(--panel-line);
   box-shadow: var(--shadow-soft);
 }
 
 .eyebrow {
   margin: 0 0 10px;
-  color: var(--accent);
+  color: var(--accent-bright);
   letter-spacing: 3px;
   font-size: 13px;
   font-weight: 800;
@@ -126,7 +183,7 @@ h1 {
   color: var(--white);
   font-size: 22px;
   font-weight: 800;
-  border-left: 8px solid var(--accent);
+  border-left: 8px solid var(--accent-bright);
 }
 
 /* ================================
@@ -196,7 +253,7 @@ textarea {
 
 input::placeholder,
 textarea::placeholder {
-  color: #9ca3af;
+  color: #a3a3b8;
 }
 
 /* ================================
@@ -288,13 +345,16 @@ td textarea {
 ================================ */
 
 .form-actions {
+  width: 100%;
   display: flex;
   justify-content: flex-end;
   gap: 14px;
   padding: 24px;
   border-radius: var(--radius-lg);
-  background: rgba(17, 24, 39, 0.94);
-  border: 1px solid rgba(229, 231, 235, 0.15);
+  background: var(--panel-dark);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--panel-line);
   box-shadow: var(--shadow-soft);
 }
 
@@ -316,13 +376,22 @@ button:hover {
   transform: translateY(-1px);
 }
 
+button:focus-visible {
+  outline: 3px solid var(--accent-bright);
+  outline-offset: 2px;
+}
+
 .primary-button {
   background: var(--accent);
-  color: var(--primary);
+  color: var(--on-accent);
 }
 
 .primary-button:hover {
-  background: #a3e635;
+  background: var(--accent-hover);
+}
+
+.form-actions .primary-button {
+  width: 100%;
 }
 
 .secondary-button {
@@ -331,7 +400,7 @@ button:hover {
 }
 
 .secondary-button:hover {
-  background: #f3f4f6;
+  background: var(--secondary-hover);
 }
 
 .icon-button {
@@ -347,7 +416,65 @@ button:hover {
 
 .icon-button:hover {
   background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* ================================
+   CHOICE CARD / PURPOSE
+================================ */
+
+.purpose-radio {
+  display: flex;
+  flex-direction: row !important;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: center;
+}
+
+.purpose-radio label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: auto;
+}
+
+.purpose-radio input {
+  width: auto;
+}
+
+.choice-card {
+  margin: 24px 0;
+  padding: 20px 22px;
+  border-radius: 18px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-left: 8px solid var(--accent);
+}
+
+.choice-title {
+  margin-bottom: 16px;
+  font-size: 17px;
+  font-weight: 800;
   color: var(--primary);
+}
+
+.choice-card .radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.choice-card .radio-group label {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  transition: 0.2s ease;
+}
+
+.choice-card .radio-group label:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 
 /* ================================
@@ -364,7 +491,7 @@ button:hover {
 
 @media (max-width: 768px) {
   body {
-    background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+    background: linear-gradient(135deg, var(--bg-from) 0%, var(--bg-mid) 100%);
   }
 
   .app {
@@ -399,11 +526,6 @@ button:hover {
     grid-template-columns: 1fr;
   }
 
-  .purpose-radio {
-    flex-direction: row !important;
-    flex-wrap: wrap;
-  }
-
   .form-actions {
     flex-direction: column;
   }
@@ -413,65 +535,19 @@ button:hover {
   }
 }
 
-.purpose-radio {
-  display: flex;
-  flex-direction: row !important;
-  flex-wrap: wrap;
-  gap: 24px;
-  align-items: center;
-}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 
-.purpose-radio label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: auto;
-}
+  button,
+  input,
+  textarea,
+  select {
+    transition: none;
+  }
 
-.purpose-radio input {
-  width: auto;
-}
-
-.choice-card {
-  margin: 24px 0;
-  padding: 20px 22px;
-  border-radius: 18px;
-  background: #f9fafb;
-  border: 1px solid #d1d5db;
-  border-left: 8px solid #84cc16;
-}
-
-.choice-title {
-  margin-bottom: 16px;
-  font-size: 17px;
-  font-weight: 800;
-  color: #111827;
-}
-
-.choice-card .radio-group {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.choice-card .radio-group label {
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  transition: 0.2s ease;
-}
-
-.choice-card .radio-group label:hover {
-  border-color: #84cc16;
-  background: #f7fee7;
-}
-
-.form-actions {
-  width: 100%;
-  display: flex;
-}
-
-.form-actions .primary-button {
-  width: 100%;
+  button:hover {
+    transform: none;
+  }
 }
