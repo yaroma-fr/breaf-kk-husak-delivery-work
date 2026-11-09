@@ -773,7 +773,7 @@ function buildWordDocumentHtml(data) {
         </tr>
 
         <tr>
-            <td class="label">Посилання на Worksection</td>
+            <td class="label">№ перевірки СБ</td>
             <td class="value">${escapeHtml(data.contractor.worksectionLink)}</td>
         </tr>
 

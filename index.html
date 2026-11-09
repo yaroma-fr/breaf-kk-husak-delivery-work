@@ -380,109 +380,11 @@
           </div>
         </section>
 
-        <!-- 3. Що саме має зробити підрядник -->
+        <!-- 3. УМОВИ ПОСТАВКИ -->
         <section class="form-section" id="section-services-task">
-          <h2>3. Що саме має зробити підрядник</h2>
+          <h2>3. УМОВИ ПОСТАВКИ</h2>
 
-          <div class="form-row">
-            <label for="serviceShortName"
-              >Коротка назва послуг / робіт (приклад: розробка дизайну) </label
-            >
-            <input
-              id="serviceShortName"
-              name="serviceShortName"
-              type="text"
-              required
-            />
-          </div>
-
-          <div class="form-row textarea-row">
-            <label for="serviceDescription"
-              >Детальний опис послуг / робіт 
-              <span class="hint">
-                ( Опишіть простими словами, що саме робить підрядник, який
-                результат має передати, у яких форматах, обсягах або кількості)
-              </span>
-            </label>
-            <textarea
-              id="serviceDescription"
-              name="serviceDescription"
-              required
-            ></textarea>
-          </div>
-        </section>
-
-        <!-- 4. ТЗ/Замовлення/Додаток з Клієнтом -->
-        <section class="form-section" id="section-services">
-          <h2>4. ТЗ/Замовлення/Додаток з Клієнтом</h2>
-
-          <div class="form-row textarea-row">
-            <label for="serviceExtation"
-              >За яким ТЗ/Замовленням/Додатком з Клієнтом  плануємо закриватись
-              <span class="hint"> (пункт не застосовується до валютних SOW з МС) </span>
-            </label>
-            <textarea
-              id="serviceExtation"
-              name="serviceExtation"
-              required
-            ></textarea>
-          </div>
-        </section>
-
-        <!-- 5. Строки виконання -->
-        <section class="form-section" id="section-timing">
-          <h2>5. Строки виконання</h2>
-
-          <div class="form-row">
-            <label for="startDate">Дата початку </label>
-            <input id="startDate" name="startDate" type="date" required />
-          </div>
-
-          <div class="form-row">
-            <label for="finishDate">Дата завершення </label>
-            <input id="finishDate" name="finishDate" type="date" required />
-          </div>
-
-          <div class="form-row">
-            <label>Етапи/Акти </label>
-
-            <div class="radio-group">
-              <label>
-                <input
-                  type="radio"
-                  name="timingFormat"
-                  value="Один етап і один акт"
-                  required
-                />
-                Один етап і один акт
-              </label>
-
-              <label>
-                <input
-                  type="radio"
-                  name="timingFormat"
-                  value="Кілька етапів і окремий акт по кожному етапу"
-                />
-                Кілька етапів і окремий акт по кожному етапу
-              </label>
-
-              <label>
-                <input type="radio" name="timingFormat" value="Інше" />
-                Інше
-              </label>
-            </div>
-          </div>
-
-          <div class="form-row hidden" id="timingFormatOtherRow">
-            <label for="timingFormatOther">Інший формат виконання</label>
-            <input
-              id="timingFormatOther"
-              name="timingFormatOther"
-              type="text"
-            />
-          </div>
-        </section>
-
+        
         <!-- Табличка - етапи робіт -->
         <section class="form-section hidden" id="section-stages">
           <h2>Етапи робіт</h2>
@@ -539,47 +441,8 @@
           </div>
         </section>
 
-        <!-- 6. Вартість і порядок оплати -->
-        <section class="form-section" id="section-cost">
-          <h2>6. Вартість і порядок оплати</h2>
-
-          <div class="choice-card">
-            <div class="form-row">
-              <label>6.1. Місце реєстрації підрядника</label>
-
-              <div class="radio-group horizontal">
-                <label>
-                  <input type="radio" name="contractorCountry" value="Україна" required />
-                  Україна
-                </label>
-
-                <label>
-                  <input type="radio" name="contractorCountry" value="Інша країна" />
-                  Інша країна
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <div class="choice-card hidden" id="costBlock">
-            <h3>6.2. Вартість послуг</h3>
-
-            <div class="form-row">
-              <label for="costAmount" id="costAmountLabel">Сума</label>
-              <input id="costAmount" name="costAmount" type="text" />
-            </div>
-
-            <div class="form-row">
-              <label for="currency">Валюта</label>
-              <input
-                id="currency"
-                name="currency"
-                type="text"
-                placeholder="UAH, USD, EUR"
-              />
-            </div>
-          </div>
-        </section>
+        <!-- 4. Порядок оплати -->
+        
 
         <!-- Табличка- порядок оплати -->
         <section class="form-section" id="section-payments">
@@ -633,95 +496,7 @@
           </div>
         </section>
 
-        <!-- 7. Інтелектуальна власність -->
-        <section class="form-section" id="section-ip">
-          <h2>7. Інтелектуальна власність</h2>
-
-          <div class="form-row checkbox-row">
-            <label>Чи створює підрядник щось із наведеного нижче?</label>
-
-            <div class="checkbox-grid">
-              <label
-                ><input type="checkbox" name="ipItems" value="Дизайн" />
-                Дизайн</label
-              >
-              <label
-                ><input type="checkbox" name="ipItems" value="Фото" />
-                Фото</label
-              >
-              <label
-                ><input type="checkbox" name="ipItems" value="Відео" />
-                Відео</label
-              >
-              <label
-                ><input type="checkbox" name="ipItems" value="Тексти" />
-                Тексти</label
-              >
-              <label
-                ><input type="checkbox" name="ipItems" value="Музика" />
-                Музика</label
-              >
-              <label
-                ><input type="checkbox" name="ipItems" value="Сценарії" />
-                Сценарії</label
-              >
-              <label
-                ><input type="checkbox" name="ipItems" value="Концепції" />
-                Концепції</label
-              >
-              <label
-                ><input type="checkbox" name="ipItems" value="Презентації" />
-                Презентації</label
-              >
-              <label
-                ><input
-                  type="checkbox"
-                  name="ipItems"
-                  value="Програмне забезпечення"
-                />
-                Програмне забезпечення</label
-              >
-              <label
-                ><input type="checkbox" name="ipItems" value="Інший креатив" />
-                Інший креатив</label
-              >
-              <label
-                ><input
-                  type="checkbox"
-                  name="ipItems"
-                  value="Ні, нічого з цього"
-                />
-                Ні, нічого з цього</label
-              >
-            </div>
-          </div>
-          <div id="ipDetailsBlock" class="hidden">
-            <div class="form-row textarea-row">
-              <label for="ipDescription">Якщо так, що саме створюється?</label>
-              <textarea id="ipDescription" name="ipDescription"></textarea>
-            </div>
-
-            <div class="form-row textarea-row">
-              <label for="usageRestrictions"
-                >Чи є обмеження щодо використання результату?</label
-              >
-              <textarea
-                id="usageRestrictions"
-                name="usageRestrictions"
-                placeholder="Строк, територія, канали використання, заборона редагування тощо"
-              ></textarea>
-            </div>
-
-            <div class="form-row textarea-row">
-              <label for="clientRights"
-                >Чи потрібні авторські права клієнту(банку)?</label
-              >
-              <textarea id="clientRights" name="clientRights"></textarea>
-            </div>
-          </div>
-        </section>
-
-        <!-- 8. Додаткові та ризикові умови -->
+        <!-- 5. Додаткові та ризикові умови -->
         <section class="form-section" id="section-risks">
           <h2>8. Додаткові та ризикові умови</h2>
 
@@ -735,7 +510,7 @@
           </div>
         </section>
 
-        <!-- 9. Файли / посилання -->
+        <!-- 6. Файли / посилання -->
         <section class="form-section" id="section-files">
           <h2>9. Файли та посилання</h2>
 
