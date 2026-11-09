@@ -763,21 +763,6 @@ function buildWordDocumentHtml(data) {
 
     <table>
         <tr>
-            <td class="label">Активність</td>
-            <td class="value">${escapeHtml(data.contractor.activityName)}</td>
-        </tr>
-
-        <tr>
-            <td class="label">Місце надання послуг</td>
-            <td class="value">${escapeHtml(data.contractor.activityLocation)}</td>
-        </tr>
-
-        <tr>
-            <td class="label">Дата проведення активності</td>
-            <td class="value">${escapeHtml(data.contractor.activityDate)}</td>
-        </tr>
-
-        <tr>
             <td class="label">Повна юридична назва підрядника / ПІБ ФОП</td>
             <td class="value">${escapeHtml(data.contractor.contractorName)}</td>
         </tr>
