@@ -323,13 +323,22 @@ function addStageRow() {
   row.innerHTML = `
         <td class="stage-number"></td>
         <td>
-            <textarea name="stageWork[]" placeholder="Опишіть роботи"></textarea>
+            <textarea name="deliverName[]" placeholder="Назва"></textarea>
         </td>
         <td>
-            <input name="stagePeriod[]" type="text" placeholder="01.09 - 15.09">
+            <input name="deliverAmount[]" type="text" placeholder="штук">
         </td>
         <td>
-            <input name="stageAmount[]" type="text" placeholder="10000">
+            <input name="deliverCountry[]" type="text" placeholder="Країна">
+        </td>
+        <td>
+            <input name="deliverCode[]" type="text" placeholder="Код">
+        </td>
+         <td>
+            <input name="deliverCost[]" type="text" placeholder="Ціна">
+        </td>
+         <td>
+            <input name="deliverVart[]" type="text" placeholder="Вартість">
         </td>
         <td>
             <button type="button" class="icon-button remove-row">×</button>
@@ -541,9 +550,10 @@ function collectStages() {
   return Array.from(rows).map(function (row, index) {
     return {
       stageNo: index + 1,
-      work: row.querySelector('[name="stageWork[]"]')?.value.trim() || "",
-      period: row.querySelector('[name="stagePeriod[]"]')?.value.trim() || "",
-      amount: row.querySelector('[name="stageAmount[]"]')?.value.trim() || "",
+      delName: row.querySelector('[name="deliverName[]"]')?.value.trim() || "",
+      delAmount: row.querySelector('[name="deliverAmount[]"]')?.value.trim() || "",
+      delCountry: row.querySelector('[name="deliverCountry[]"]')?.value.trim() || "",
+      delCode: row.querySelector('[name="deliverCode[]"]')?.value.trim() || "",
     };
   });
 }
@@ -961,9 +971,12 @@ function buildStagesWordTable(stages) {
     rows += `
             <tr>
                 <td>${escapeHtml(stage.stageNo)}</td>
-                <td>${escapeHtml(stage.work)}</td>
-                <td>${escapeHtml(stage.period)}</td>
-                <td>${escapeHtml(stage.amount)}</td>
+                <td>${escapeHtml(stage.delName)}</td>
+                <td>${escapeHtml(stage.delAmount)}</td>
+                <td>${escapeHtml(stage.delCountry)}</td>
+                <td>${escapeHtml(stage.delCode)}</td>
+                <td>${escapeHtml(stage.delCost)}</td>
+                <td>${escapeHtml(stage.delVart)}</td>
             </tr>
         `;
   });

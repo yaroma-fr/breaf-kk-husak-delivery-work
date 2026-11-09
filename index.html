@@ -386,14 +386,10 @@
         </section>
 
         
-        <!-- 4. Етапи робіт -->
-        <section class="form-section hidden" id="section-stages">
-          <h2>4. Етапи робіт</h2>
-
-        <!-- Табличка - етапи робіт -->
+       <!-- Табличка - Умови поставки -->
           <div class="table-actions">
             <button type="button" class="secondary-button" id="addStageBtn">
-              + Додати етап
+              + Додати позицію
             </button>
           </div>
 
@@ -402,9 +398,12 @@
               <thead>
                 <tr>
                   <th>Етап</th>
-                  <th>Що виконується</th>
-                  <th>Період</th>
-                  <th>Сума</th>
+                  <th>Найменування</th>
+                  <th>Кількість, шт</th>
+                  <th>В якій країні виготовлений Товар</th>
+                  <th>Код УКТЗЕД</th>
+                  <th>Ціна за од. без ПДВ, грн.</th>
+                  <th>Вартість без ПДВ, грн.</th>
                   <th></th>
                 </tr>
               </thead>
@@ -414,22 +413,43 @@
                   <td class="stage-number">1</td>
                   <td>
                     <textarea
-                      name="stageWork[]"
-                      placeholder="Опишіть роботи"
+                      name="deliverName[]"
+                      placeholder="Найменування"
                     ></textarea>
                   </td>
                   <td>
                     <input
-                      name="stagePeriod[]"
+                      name="deliverAmount[]"
                       type="text"
-                      placeholder="01.09 - 15.09"
+                      placeholder="шт"
                     />
                   </td>
                   <td>
                     <input
-                      name="stageAmount[]"
+                      name="deliverCountry[]"
                       type="text"
-                      placeholder="10000"
+                      placeholder="Ukraine"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      name="deliverCode[]"
+                      type="text"
+                      placeholder="Code"
+                    />
+                  </td>
+                   <td>
+                    <input
+                      name="deliverCost[]"
+                      type="text"
+                      placeholder="Price"
+                    />
+                  </td>
+                   <td>
+                    <input
+                      name="deliverVart[]"
+                      type="text"
+                      placeholder="Total"
                     />
                   </td>
                   <td>
