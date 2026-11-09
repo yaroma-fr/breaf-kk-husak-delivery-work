@@ -1,27 +1,10 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // Прибрати required з усіх полів форми
-  document
-    .querySelectorAll("#briefForm [required]")
-    .forEach(function (el) {
-      el.removeAttribute("required");
-    });
+  initAuthenticatedUserInfo();
 
-  initAuthenticatedUserInfo();
-  initAuthenticatedUserInfo();
-  
   initDynamicFields();
   initStagesTable();
   initPaymentsTable();
-
-  initExclusiveCheckboxGroup(
-    "ipItems",
-    "Ні, нічого з цього",
-    handleIpDetailsVisibility,
-  );
-
-  initExclusiveCheckboxGroup("fileLinks", "Відсутній");
-
-  handleIpDetailsVisibility();
+  initDeliveryBlock();
 
   initDownloadWordButton();
 });
@@ -55,25 +38,9 @@ function showElementById(id, shouldShow) {
   }
 }
 
-function collectCheckedValues(name) {
-  const checked = document.querySelectorAll(`input[name="${name}"]:checked`);
-
-  return Array.from(checked).map(function (item) {
-    return item.value;
-  });
-}
-
-function validateCheckboxGroup(groupName, message) {
-  const checkedItems = document.querySelectorAll(
-    `input[name="${groupName}"]:checked`,
-  );
-
-  if (checkedItems.length === 0) {
-    alert(message);
-    return false;
-  }
-
-  return true;
+function parseNumber(value) {
+  const n = parseFloat(String(value).replace(/\s/g, "").replace(",", "."));
+  return isNaN(n) ? 0 : n;
 }
 
 async function initAuthenticatedUserInfo() {
@@ -92,9 +59,7 @@ async function initAuthenticatedUserInfo() {
       return;
     }
 
-    const user = authData.clientPrincipal;
-    const userEmail = user.userDetails || "";
-
+    const userEmail = authData.clientPrincipal.userDetails || "";
     const managerEmailInput = document.getElementById("managerEmail");
 
     if (managerEmailInput && userEmail) {
@@ -115,20 +80,12 @@ function initDynamicFields() {
     .querySelectorAll('input[name="documentType"]')
     .forEach(function (radio) {
       radio.addEventListener("change", function () {
-        const value = getRadioValue("documentType");
-
-        showElementById("documentOtherRow", value === "Інше");
+        showElementById(
+          "documentOtherRow",
+          getRadioValue("documentType") === "Інше",
+        );
       });
     });
-
-  // Місце реєстрації підрядника + ПДВ -> поля вартості
-      document
-        .querySelectorAll('input[name="contractorCountry"], input[name="contractorVat"]')
-        .forEach(function (radio) {
-          radio.addEventListener("change", updateCostFields);
-        });
-
-      updateCostFields();
 
   // Юридична особа
   document
@@ -138,7 +95,6 @@ function initDynamicFields() {
         const value = getRadioValue("legalEntity");
 
         showElementById("fopNameRow", value === "Внутрішній ФОП");
-
         showElementById("legalOtherRow", value === "Інше");
 
         const needReason =
@@ -155,134 +111,88 @@ function initDynamicFields() {
     .querySelectorAll('input[name="workedBefore"]')
     .forEach(function (radio) {
       radio.addEventListener("change", function () {
-        const value = getRadioValue("workedBefore");
-
-        showElementById("workedBeforeDetailsRow", value === "Так");
+        showElementById(
+          "workedBeforeDetailsRow",
+          getRadioValue("workedBefore") === "Так",
+        );
       });
     });
 
   // Чи працює у Вчасно
   document.querySelectorAll('input[name="vchasno"]').forEach(function (radio) {
     radio.addEventListener("change", function () {
-      const value = getRadioValue("vchasno");
-
-      showElementById("vchasnoEmailRow", value === "Так" || value === "Інше");
+      showElementById("vchasnoEmailRow", getRadioValue("vchasno") === "Так");
     });
   });
 
-  // Формат виконання -> Інше
+  // Чи є макет Товару
   document
-    .querySelectorAll('input[name="timingFormat"]')
+    .querySelectorAll('input[name="hasMockup"]')
     .forEach(function (radio) {
       radio.addEventListener("change", function () {
-        const value = getRadioValue("timingFormat");
-
-        // Поле для варіанту "Інше"
-        showElementById("timingFormatOtherRow", value === "Інше");
-        // Блок етапів робіт
         showElementById(
-          "section-stages",
-          value === "Кілька етапів і окремий акт по кожному етапу",
+          "mockupFileRow",
+          getRadioValue("hasMockup") === "Так",
         );
       });
     });
 }
 
-function getCostLabel() {
-  const country = getRadioValue("contractorCountry");
-  const vat = getRadioValue("contractorVat");
+/* ================================
+   DELIVERY: TOTALS
+================================ */
 
-  if (country === "Інша країна") {
-    return "Повна сума до сплати";
+function initDeliveryBlock() {
+  const stagesTable = document.getElementById("stagesTable");
+
+  if (stagesTable) {
+    stagesTable.addEventListener("input", recalcDelivery);
   }
 
-  if (country === "Україна" && vat === "Так") {
-    return "Загальна вартість з ПДВ";
-  }
-
-  if (country === "Україна" && vat === "Ні") {
-    return "Загальна вартість без ПДВ";
-  }
-
-  return ""; // ще не обрано достатньо відповідей
-}
-
-function updateCostFields() {
-  const label = getCostLabel();
-  const labelElement = document.getElementById("costAmountLabel");
-
-  showElementById("costBlock", label !== "");
-
-  if (labelElement && label) {
-    labelElement.textContent = label;
-  }
-
-  if (!label) {
-    document.getElementById("costAmount").value = "";
-    document.getElementById("currency").value = "";
-  }
-}
-
-function initExclusiveCheckboxGroup(groupName, noneValue, afterChange) {
-  const checkboxes = document.querySelectorAll(`input[name="${groupName}"]`);
-
-  checkboxes.forEach(function (checkbox) {
-    checkbox.addEventListener("change", function () {
-      const isNoneOption = checkbox.value === noneValue;
-
-      if (isNoneOption && checkbox.checked) {
-        checkboxes.forEach(function (item) {
-          if (item.value !== noneValue) {
-            item.checked = false;
-          }
-        });
-      }
-
-      if (!isNoneOption && checkbox.checked) {
-        checkboxes.forEach(function (item) {
-          if (item.value === noneValue) {
-            item.checked = false;
-          }
-        });
-      }
-
-      if (typeof afterChange === "function") {
-        afterChange();
-      }
+  document
+    .querySelectorAll('input[name="contractorVat"]')
+    .forEach(function (radio) {
+      radio.addEventListener("change", recalcDelivery);
     });
-  });
+
+  recalcDelivery();
 }
 
-function handleIpDetailsVisibility() {
-  const selectedIpItems = collectCheckedValues("ipItems");
+function recalcDelivery() {
+  let total = 0;
 
-  const shouldShowDetails =
-    selectedIpItems.length > 0 &&
-    !selectedIpItems.includes("Ні, нічого з цього");
+  document.querySelectorAll("#stagesTable tbody tr").forEach(function (row) {
+    const qty = parseNumber(
+      row.querySelector('[name="deliverAmount[]"]')?.value,
+    );
+    const price = parseNumber(
+      row.querySelector('[name="deliverCost[]"]')?.value,
+    );
+    const sum = qty * price;
+    const out = row.querySelector('[name="deliverVart[]"]');
 
-  showElementById("ipDetailsBlock", shouldShowDetails);
-
-  if (!shouldShowDetails) {
-    const ipDescription = document.getElementById("ipDescription");
-    const usageRestrictions = document.getElementById("usageRestrictions");
-    const clientRights = document.getElementById("clientRights");
-
-    if (ipDescription) {
-      ipDescription.value = "";
+    if (out) {
+      out.value = sum ? sum.toFixed(2) : "";
     }
 
-    if (usageRestrictions) {
-      usageRestrictions.value = "";
-    }
+    total += sum;
+  });
 
-    if (clientRights) {
-      clientRights.value = "";
-    }
-  }
+  const isVatPayer = getRadioValue("contractorVat") === "Так";
+  const vat = total * 0.2;
+
+  document.getElementById("totalNoVat").value = total ? total.toFixed(2) : "";
+  document.getElementById("totalVat").value =
+    isVatPayer && total ? vat.toFixed(2) : "";
+  document.getElementById("totalWithVat").value =
+    isVatPayer && total ? (total + vat).toFixed(2) : "";
+
+  showElementById("totalVatRow", isVatPayer);
+  showElementById("totalWithVatRow", isVatPayer);
 }
 
 /* ================================
-   STAGES TABLE
+   STAGES TABLE (УМОВИ ПОСТАВКИ)
 ================================ */
 
 function initStagesTable() {
@@ -305,6 +215,7 @@ function initStagesTable() {
       if (row) {
         row.remove();
         renumberStages();
+        recalcDelivery();
       }
     }
   });
@@ -323,22 +234,22 @@ function addStageRow() {
   row.innerHTML = `
         <td class="stage-number"></td>
         <td>
-            <textarea name="deliverName[]" placeholder="Назва"></textarea>
+            <textarea name="deliverName[]" placeholder="Найменування"></textarea>
         </td>
         <td>
-            <input name="deliverAmount[]" type="text" placeholder="штук">
+            <input name="deliverAmount[]" type="text" placeholder="шт">
         </td>
         <td>
-            <input name="deliverCountry[]" type="text" placeholder="Країна">
+            <input name="deliverCountry[]" type="text" placeholder="Україна">
         </td>
         <td>
             <input name="deliverCode[]" type="text" placeholder="Код">
         </td>
-         <td>
+        <td>
             <input name="deliverCost[]" type="text" placeholder="Ціна">
         </td>
-         <td>
-            <input name="deliverVart[]" type="text" placeholder="Вартість">
+        <td>
+            <input name="deliverVart[]" type="text" readonly placeholder="Авто">
         </td>
         <td>
             <button type="button" class="icon-button remove-row">×</button>
@@ -448,9 +359,6 @@ function collectBriefData() {
     },
 
     contractor: {
-      activityName: getValue("activityName"),
-      activityLocation: getValue("activityLocation"),
-      activityDate: getValue("activityDate"),
       contractorName: getValue("contractorName"),
       contractorVat: getRadioValue("contractorVat"),
       worksectionLink: getValue("worksectionLink"),
@@ -462,44 +370,31 @@ function collectBriefData() {
       vchasnoEmail: getValue("vchasnoEmail"),
     },
 
-    services: {
-      serviceShortName: getValue("serviceShortName"),
-      serviceDescription: getValue("serviceDescription"),
-      clientContractReference: getValue("clientContractReference"),
-      serviceExtation: getValue("serviceExtation"),
-    },
+    items: collectItems(),
 
-    timing: {
-      startDate: getValue("startDate"),
-      finishDate: getValue("finishDate"),
-      timingFormat: getTimingFormat(),
-    },
-
-    stages: collectStages(),
-
-    cost: {
-      country: getRadioValue("contractorCountry"),
-      amountLabel: getCostLabel(),
-      amount: getValue("costAmount"),
-      currency: getValue("currency"),
+    delivery: {
+      totalNoVat: getValue("totalNoVat"),
+      totalVat: getValue("totalVat"),
+      totalWithVat: getValue("totalWithVat"),
+      techSpecs: getValue("techSpecs"),
+      deliveryTerm: getValue("deliveryTerm"),
+      deliveryPlace: getRadioValue("deliveryPlace"),
+      deliveryAddress: getValue("deliveryAddress"),
     },
 
     payments: collectPayments(),
-
-    intellectualProperty: {
-      ipItems: collectCheckedValues("ipItems"),
-      ipDescription: getValue("ipDescription"),
-      usageRestrictions: getValue("usageRestrictions"),
-      clientRights: getValue("clientRights"),
-    },
 
     risks: {
       riskConditions: getValue("riskConditions"),
     },
 
     files: {
-      fileLinks: collectCheckedValues("fileLinks"),
-      additionalLinks: getValue("additionalLinks"),
+      hasMockup: getRadioValue("hasMockup"),
+      mockupFiles: Array.from(
+        document.getElementById("mockupFile")?.files || [],
+      ).map(function (file) {
+        return file.name;
+      }),
     },
   };
 }
@@ -528,32 +423,22 @@ function getLegalEntity() {
   return value;
 }
 
-function getTimingFormat() {
-  const value = getRadioValue("timingFormat");
-
-  if (value === "Інше") {
-    return getValue("timingFormatOther");
-  }
-
-  return value;
-}
-
-function collectStages() {
-  const timingFormat = getRadioValue("timingFormat");
-
-  if (timingFormat !== "Кілька етапів і окремий акт по кожному етапу") {
-    return [];
-  }
-
+function collectItems() {
   const rows = document.querySelectorAll("#stagesTable tbody tr");
 
   return Array.from(rows).map(function (row, index) {
+    const get = function (name) {
+      return row.querySelector(`[name="${name}[]"]`)?.value.trim() || "";
+    };
+
     return {
-      stageNo: index + 1,
-      delName: row.querySelector('[name="deliverName[]"]')?.value.trim() || "",
-      delAmount: row.querySelector('[name="deliverAmount[]"]')?.value.trim() || "",
-      delCountry: row.querySelector('[name="deliverCountry[]"]')?.value.trim() || "",
-      delCode: row.querySelector('[name="deliverCode[]"]')?.value.trim() || "",
+      itemNo: index + 1,
+      name: get("deliverName"),
+      amount: get("deliverAmount"),
+      country: get("deliverCountry"),
+      code: get("deliverCode"),
+      price: get("deliverCost"),
+      total: get("deliverVart"),
     };
   });
 }
@@ -572,51 +457,19 @@ function collectPayments() {
   });
 }
 
+/* ================================
+   DOWNLOAD WORD
+================================ */
+
 function initDownloadWordButton() {
   const button = document.getElementById("downloadWordBtn");
-  const form = document.getElementById("briefForm");
 
   if (!button) {
     console.warn("downloadWordBtn not found");
     return;
   }
 
-  if (!form) {
-    console.warn("briefForm not found");
-    return;
-  }
-
   button.addEventListener("click", function () {
-    // 1. Перевірка стандартних required-полів
-    // if (!form.checkValidity()) {
-    //   alert("Заповніть усі обов'язкові поля перед завантаженням Word.");
-
-    //   // Показує стандартні браузерні підказки біля незаповнених полів
-    //   form.reportValidity();
-
-    //   return;
-    // }
-
-    // 2. Перевірка обов'язкових checkbox-груп
-    // if (
-    //   !validateCheckboxGroup(
-    //     "ipItems",
-    //     "Оберіть варіант у блоці «Інтелектуальна власність».",
-    //   )
-    // ) {
-    //   return;
-    // }
-
-    // if (
-    //   !validateCheckboxGroup(
-    //     "fileLinks",
-    //     "Оберіть варіант у блоці «Файли та посилання».",
-    //   )
-    // ) {
-    //   return;
-    // }
-
-    // 3. Якщо все заповнено, формуємо Word
     const data = collectBriefData();
     const html = buildWordDocumentHtml(data);
 
@@ -625,6 +478,8 @@ function initDownloadWordButton() {
 }
 
 function buildWordDocumentHtml(data) {
+  const isVatPayer = data.contractor.contractorVat === "Так";
+
   return `
 <!DOCTYPE html>
 <html>
@@ -692,7 +547,7 @@ function buildWordDocumentHtml(data) {
 
 <body>
 
-    <h1>Бриф для договору з підрядником</h1>
+    <h1>Бриф на договір / додаток поставки з підрядником</h1>
 
     <h2>1. Загальна інформація</h2>
 
@@ -723,48 +578,27 @@ function buildWordDocumentHtml(data) {
         </tr>
     </table>
 
-        <table>
+    <table>
         <tr>
             <td class="label">Юридична особа зі сторони Adsapience</td>
             <td class="value">${escapeHtml(data.legal.legalEntity)}</td>
         </tr>
-        ${
-          data.legal.fopName
-            ? `
-                <tr>
-                    <td class="label">Назва ФОП</td>
-                    <td class="value">${escapeHtml(data.legal.fopName)}</td>
-                </tr>
-        `
-            : ""
-        }
-        ${
-          data.legal.legalOther
-            ? `
-        <tr>
-            <td class="label">Інша юридична особа</td>
-            <td class="value">${escapeHtml(data.legal.legalOther)}</td>
-        </tr>
-         `
-            : ""
-        }
 
         ${
           ["ТОВ «СЕРВІС ХАБ»", "ТОВ «АДВЕЙС ЛІДЕР»", "Внутрішній ФОП"].includes(
             data.legal.legalEntityType,
           )
             ? `
-    <tr>
-        <td class="label">Причина закриття не на фронтальне агентство</td>
-        <td class="value">${escapeHtml(data.legal.nonFrontAgencyReason)}</td>
-    </tr>
-`
+        <tr>
+            <td class="label">Причина закриття не на фронтальне агентство</td>
+            <td class="value">${escapeHtml(data.legal.nonFrontAgencyReason)}</td>
+        </tr>
+        `
             : ""
         }
-     
 
         <tr>
-            <td class="label">Мета послуг за документом</td>
+            <td class="label">Функція агентства</td>
             <td class="value">${escapeHtml(data.legal.documentPurpose)}</td>
         </tr>
     </table>
@@ -820,138 +654,83 @@ function buildWordDocumentHtml(data) {
         </tr>
     </table>
 
-    <h2>3. Що саме має зробити підрядник</h2>
+    <h2>3. Умови поставки</h2>
+
+    ${buildItemsWordTable(data.items)}
 
     <table>
         <tr>
-            <td class="label">Коротка назва послуг / робіт</td>
-            <td class="value">${escapeHtml(data.services.serviceShortName)}</td>
-        </tr>
-
-        <tr>
-            <td class="label">Детальний опис послуг / робіт</td>
-            <td class="value">${escapeHtml(data.services.serviceDescription)}</td>
-        </tr>
-
-    </table>
-
-    <h2>4. ТЗ/Замовлення Клієнта/Додаток</h2>
-
-    <table>
-        <tr>
-            <td class="label">За яким ТЗ/Додатком/Замовлення плануємо закриватись (у разі наявності інформації)</td>
-            <td class="value">${escapeHtml(data.services.serviceExtation)}</td>
-        </tr>
-    </table>
-
-    <h2>5. Строки виконання</h2>
-
-    <table>
-        <tr>
-            <td class="label">Дата початку</td>
-            <td class="value">${escapeHtml(data.timing.startDate)}</td>
-        </tr>
-
-        <tr>
-            <td class="label">Дата завершення</td>
-            <td class="value">${escapeHtml(data.timing.finishDate)}</td>
-        </tr>
-
-        <tr>
-            <td class="label">Формат виконання</td>
-            <td class="value">${escapeHtml(data.timing.timingFormat)}</td>
-        </tr>
-    </table>
-
-    ${
-      data.stages && data.stages.length > 0
-        ? `
-        <h2>Етапи робіт</h2>
-        ${buildStagesWordTable(data.stages)}
-    `
-        : ""
-    }
-
-        <h2>6. Вартість і порядок оплати</h2>
-
-    <table>
-        <tr>
-            <td class="label">6.1. Місце реєстрації підрядника</td>
-            <td class="value">${escapeHtml(data.cost.country)}</td>
+            <td class="label">Всього без ПДВ</td>
+            <td class="value">${escapeHtml(data.delivery.totalNoVat)}</td>
         </tr>
 
         ${
-          data.cost.amountLabel
+          isVatPayer
             ? `
         <tr>
-            <td class="label">6.2. ${escapeHtml(data.cost.amountLabel)}</td>
-            <td class="value">${escapeHtml(data.cost.amount)}</td>
+            <td class="label">ПДВ 20%</td>
+            <td class="value">${escapeHtml(data.delivery.totalVat)}</td>
         </tr>
 
         <tr>
-            <td class="label">Валюта</td>
-            <td class="value">${escapeHtml(data.cost.currency)}</td>
+            <td class="label">Всього з ПДВ</td>
+            <td class="value">${escapeHtml(data.delivery.totalWithVat)}</td>
         </tr>
         `
             : ""
         }
+
+        <tr>
+            <td class="label">Технічні характеристики</td>
+            <td class="value">${escapeHtml(data.delivery.techSpecs)}</td>
+        </tr>
+
+        <tr>
+            <td class="label">Термін поставки</td>
+            <td class="value">${escapeHtml(data.delivery.deliveryTerm)}</td>
+        </tr>
+
+        <tr>
+            <td class="label">Місце поставки</td>
+            <td class="value">${escapeHtml(data.delivery.deliveryPlace)}</td>
+        </tr>
+
+        <tr>
+            <td class="label">Адреса поставки</td>
+            <td class="value">${escapeHtml(data.delivery.deliveryAddress)}</td>
+        </tr>
     </table>
+
+    <h2>4. Порядок оплати</h2>
 
     ${buildPaymentsWordTable(data.payments)}
 
-    <h2>7. Інтелектуальна власність</h2>
+    <h2>5. Додаткові та ризикові умови</h2>
 
     <table>
         <tr>
-            <td class="label">Підрядник створює</td>
-            <td class="value">${escapeHtml(data.intellectualProperty.ipItems.join(", "))}</td>
-        </tr>
-
-     ${
-       data.intellectualProperty.ipItems.length > 0 &&
-       !data.intellectualProperty.ipItems.includes("Ні, нічого з цього")
-         ? `
-        <tr>
-            <td class="label">Якщо так, що саме створюється?</td>
-            <td class="value">${escapeHtml(data.intellectualProperty.ipDescription)}</td>
-        </tr>
-
-        <tr>
-            <td class="label">Чи є обмеження щодо використання результату</td>
-            <td class="value">${escapeHtml(data.intellectualProperty.usageRestrictions)}</td>
-        </tr>
-
-        <tr>
-            <td class="label">Чи потрібні авторські права клієнту (банку)</td>
-            <td class="value">${escapeHtml(data.intellectualProperty.clientRights)}</td>
-        </tr>
-    `
-         : ""
-     }
-    </table>
-
-    <h2>8. Додаткові та ризикові умови</h2>
-
-    <table>
-        <tr>
-            <td class="label">Будь-які домовленості з підрядником, 
-            які обов’язково потрібно включити в документ</td>
+            <td class="label">Будь-які домовленості з підрядником, які обов’язково потрібно включити в документ</td>
             <td class="value">${escapeHtml(data.risks.riskConditions)}</td>
         </tr>
     </table>
 
-    <h2>9. Файли та посилання</h2>
+    <h2>6. Файли та посилання</h2>
 
     <table>
         <tr>
-            <td class="label">Чи наявний будь-який документ з підрядником, 
-            що описує або деталізує послугу? </td>
-            <td class="value">${escapeHtml(data.files.fileLinks.join(", "))}</td>
-        </tr>
-
-        <tr>
-            <td class="label">Посилання / коментарі</td>
-            <td class="value">${escapeHtml(data.files.additionalLinks)}</td>
+            <td class="label">Чи є макет Товару?</td>
+            <td class="value">
+                ${escapeHtml(data.files.hasMockup)}
+                ${
+                  data.files.hasMockup === "Так"
+                    ? (data.files.mockupFiles.length
+                        ? "<br>Файли: " +
+                          escapeHtml(data.files.mockupFiles.join(", "))
+                        : "") +
+                      "<br><b>Прохання додати макет при відправці брифу</b>"
+                    : ""
+                }
+            </td>
         </tr>
     </table>
 
@@ -960,23 +739,23 @@ function buildWordDocumentHtml(data) {
     `;
 }
 
-function buildStagesWordTable(stages) {
-  if (!stages || stages.length === 0) {
-    return "<p>Етапи не заповнені.</p>";
+function buildItemsWordTable(items) {
+  if (!items || items.length === 0) {
+    return "<p>Позиції не заповнені.</p>";
   }
 
   let rows = "";
 
-  stages.forEach(function (stage) {
+  items.forEach(function (item) {
     rows += `
             <tr>
-                <td>${escapeHtml(stage.stageNo)}</td>
-                <td>${escapeHtml(stage.delName)}</td>
-                <td>${escapeHtml(stage.delAmount)}</td>
-                <td>${escapeHtml(stage.delCountry)}</td>
-                <td>${escapeHtml(stage.delCode)}</td>
-                <td>${escapeHtml(stage.delCost)}</td>
-                <td>${escapeHtml(stage.delVart)}</td>
+                <td>${escapeHtml(item.itemNo)}</td>
+                <td>${escapeHtml(item.name)}</td>
+                <td>${escapeHtml(item.amount)}</td>
+                <td>${escapeHtml(item.country)}</td>
+                <td>${escapeHtml(item.code)}</td>
+                <td>${escapeHtml(item.price)}</td>
+                <td>${escapeHtml(item.total)}</td>
             </tr>
         `;
   });
@@ -985,10 +764,13 @@ function buildStagesWordTable(stages) {
         <table>
             <thead>
                 <tr>
-                    <th>Етап</th>
-                    <th>Що виконується</th>
-                    <th>Період</th>
-                    <th>Сума</th>
+                    <th>№</th>
+                    <th>Найменування</th>
+                    <th>Кіл-ть, шт.</th>
+                    <th>В якій країні виготовлений Товар</th>
+                    <th>Код УКТЗЕД</th>
+                    <th>Ціна за од. без ПДВ, грн.</th>
+                    <th>Вартість без ПДВ, грн.</th>
                 </tr>
             </thead>
 
