@@ -551,3 +551,78 @@ button:focus-visible {
     transform: none;
   }
 }
+
+/* ================================
+   THEME: INDIGO
+   Використання: <body data-theme="indigo">
+================================ */
+
+body[data-theme="indigo"] {
+  --primary: #1e1b4b;
+  --secondary: #e0e7ff;
+  --accent: #f59e0b;
+
+  --text-dark: #1e1b4b;
+  --text-muted: #6b7280;
+  --border: #c7d2fe;
+
+  --surface-soft: #f5f7ff;
+  --focus: rgba(245, 158, 11, 0.35);
+  --shadow-soft: 0 20px 50px rgba(30, 27, 75, 0.25);
+
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(245, 158, 11, 0.18),
+      transparent 35%
+    ),
+    linear-gradient(135deg, #1e1b4b 0%, #312e81 45%, #1e1b4b 100%);
+}
+
+/* Шапка та нижня панель */
+body[data-theme="indigo"] .hero-card,
+body[data-theme="indigo"] .form-actions {
+  background: rgba(30, 27, 75, 0.92);
+  border-color: rgba(224, 231, 255, 0.2);
+}
+
+/* Картки з варіантами вибору */
+body[data-theme="indigo"] .choice-card {
+  background: #f5f7ff;
+  border: 1px solid #c7d2fe;
+  border-left: 8px solid #f59e0b;
+}
+
+body[data-theme="indigo"] .choice-title {
+  color: #1e1b4b;
+}
+
+body[data-theme="indigo"] .choice-card .radio-group label {
+  border-color: #e0e7ff;
+}
+
+body[data-theme="indigo"] .choice-card .radio-group label:hover {
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+
+/* Кнопки */
+body[data-theme="indigo"] .primary-button {
+  background: #f59e0b;
+  color: #1e1b4b;
+}
+
+body[data-theme="indigo"] .primary-button:hover {
+  background: #fbbf24;
+}
+
+body[data-theme="indigo"] .secondary-button:hover {
+  background: #eef2ff;
+}
+
+/* Мобільна версія: зберігаємо фон теми */
+@media (max-width: 768px) {
+  body[data-theme="indigo"] {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+  }
+}
