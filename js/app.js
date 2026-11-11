@@ -354,7 +354,6 @@ function collectBriefData() {
       fopName: getValue("fopName"),
       legalOther: getValue("legalOther"),
       nonFrontAgencyReason: getValue("nonFrontAgencyReason"),
-      documentPurpose: getRadioValue("documentPurpose"),
       legalEntityType: getRadioValue("legalEntity"),
     },
 
@@ -597,10 +596,6 @@ function buildWordDocumentHtml(data) {
             : ""
         }
 
-        <tr>
-            <td class="label">Функція агентства</td>
-            <td class="value">${escapeHtml(data.legal.documentPurpose)}</td>
-        </tr>
     </table>
 
     <h2>2. Інформація про підрядника</h2>
