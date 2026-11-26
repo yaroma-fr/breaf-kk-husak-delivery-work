@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Бриф для договору з підрядником</title>
-    <!-- <link rel="icon" type="image" href="./favicon.ico" /> -->
+    <!-- Порожня іконка: прибирає лого з вкладки браузера -->
+    <link rel="icon" href="data:," />
     <link rel="stylesheet" href="css/style.css" />
   </head>
 
@@ -15,7 +16,7 @@
       <section class="hero-card">
         <p class="eyebrow">ADSAPIENCE</p>
 
-        <h1>Бриф на договір / додаток поставки з підрядником </h1>
+        <h1>Бриф на договір / додаток поставки з підрядником</h1>
 
         <p class="subtitle">
           Заповніть дані для підготовки договору, додатку або додаткової угоди з
@@ -165,15 +166,6 @@
                   <input
                     type="radio"
                     name="legalEntity"
-                    value="Adsapience s.r.o"
-                  />
-                  Adsapience s.r.o
-                </label>
-
-                <label>
-                  <input
-                    type="radio"
-                    name="legalEntity"
                     value="Внутрішній ФОП"
                   />
                   Внутрішній ФОП
@@ -222,7 +214,6 @@
               ></textarea>
             </div>
           </div>
-
         </section>
 
         <!-- 2. Інформація про підрядника -->
@@ -339,6 +330,8 @@
             </button>
           </div>
 
+          <p class="scroll-hint">← Гортайте таблицю вбік →</p>
+
           <div class="table-wrap">
             <table id="stagesTable">
               <thead>
@@ -350,6 +343,7 @@
                   <th>Код УКТЗЕД</th>
                   <th>Ціна за од. без ПДВ, грн.</th>
                   <th>Вартість без ПДВ, грн.</th>
+                  <th class="vat-col hidden">Вартість з ПДВ, грн.</th>
                   <th></th>
                 </tr>
               </thead>
@@ -377,14 +371,25 @@
                     <input name="deliverCode[]" type="text" placeholder="Код" />
                   </td>
                   <td>
-                    <input name="deliverCost[]" type="text" placeholder="Ціна" />
+                    <input
+                      name="deliverCost[]"
+                      type="text"
+                      readonly
+                      placeholder="Авто"
+                    />
                   </td>
                   <td>
                     <input
                       name="deliverVart[]"
                       type="text"
-                      readonly
-                      placeholder="Авто"
+                      placeholder="Вартість"
+                    />
+                  </td>
+                  <td class="vat-col hidden">
+                    <input
+                      name="deliverVatCost[]"
+                      type="text"
+                      placeholder="З ПДВ"
                     />
                   </td>
                   <td>
@@ -399,18 +404,28 @@
 
           <div class="choice-card">
             <div class="form-row">
-              <label for="totalNoVat">Всього без ПДВ</label>
-              <input id="totalNoVat" type="text" readonly />
+              <label for="totalNoVat" class="optional">Всього без ПДВ</label>
+              <input
+                id="totalNoVat"
+                type="text"
+                readonly
+                placeholder="Авто"
+              />
             </div>
 
             <div class="form-row hidden" id="totalVatRow">
-              <label for="totalVat">ПДВ 20%</label>
-              <input id="totalVat" type="text" readonly />
+              <label for="totalVat" class="optional">ПДВ 20%</label>
+              <input id="totalVat" type="text" readonly placeholder="Авто" />
             </div>
 
             <div class="form-row hidden" id="totalWithVatRow">
-              <label for="totalWithVat">Всього з ПДВ</label>
-              <input id="totalWithVat" type="text" readonly />
+              <label for="totalWithVat" class="optional">Всього з ПДВ</label>
+              <input
+                id="totalWithVat"
+                type="text"
+                readonly
+                placeholder="Авто"
+              />
             </div>
           </div>
 
@@ -453,6 +468,7 @@
                   />
                   Самовивіз зі складу Постачальника
                 </label>
+
                 <label>
                   <input
                     type="radio"
@@ -492,12 +508,14 @@
             </button>
           </div>
 
+          <p class="scroll-hint">← Гортайте таблицю вбік →</p>
+
           <div class="table-wrap">
             <table id="paymentsTable">
               <thead>
                 <tr>
                   <th>№</th>
-                  <th>Сума</th>
+                  <th id="paymentAmountHeader">Сума</th>
                   <th>Дата</th>
                   <th>Коментар</th>
                   <th></th>
@@ -569,16 +587,27 @@
           </div>
 
           <div class="form-row hidden" id="mockupFileRow">
-            <label for="mockupFile">Додайте макет</label>
+            <label for="mockupFile" class="optional">Додайте макет</label>
             <input id="mockupFile" name="mockupFile" type="file" multiple />
           </div>
         </section>
 
         <!-- ACTIONS -->
+        <div class="table-actions">
+          <button type="button" class="secondary-button" id="clearDraftBtn">
+            Очистити форму
+          </button>
+        </div>
+
         <div class="form-actions">
           <button type="button" class="primary-button" id="downloadWordBtn">
             Завантажити Word
           </button>
+
+          <p class="download-note">
+            Якщо вам потрібно буде внести правки в збережений документ,
+            перезбережіть його перед цим у форматі Document Word (*.docx)
+          </p>
         </div>
       </form>
     </main>

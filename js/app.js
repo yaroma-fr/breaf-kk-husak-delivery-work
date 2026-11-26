@@ -7,6 +7,8 @@ document.addEventListener("DOMContentLoaded", function () {
   initDeliveryBlock();
 
   initDownloadWordButton();
+  initValidationReset();
+  initDraftAutosave(); // має бути останнім
 });
 
 /* ================================
@@ -136,6 +138,23 @@ function initDynamicFields() {
         );
       });
     });
+
+  // ПДВ -> заголовок «Сума з ПДВ» у порядку оплати
+  document
+    .querySelectorAll('input[name="contractorVat"]')
+    .forEach(function (radio) {
+      radio.addEventListener("change", updateVatHeaders);
+    });
+
+  updateVatHeaders();
+}
+
+function updateVatHeaders() {
+  const header = document.getElementById("paymentAmountHeader");
+  if (!header) return;
+
+  const isVatPayer = getRadioValue("contractorVat") === "Так";
+  header.textContent = isVatPayer ? "Сума з ПДВ" : "Сума";
 }
 
 /* ================================
@@ -159,33 +178,61 @@ function initDeliveryBlock() {
 }
 
 function recalcDelivery() {
-  let total = 0;
+  const VAT_RATE = 0.2;
+  const isVatPayer = getRadioValue("contractorVat") === "Так";
+
+  let totalNoVat = 0;
+  let totalWithVat = 0;
+
+  // Колонка «Вартість з ПДВ» видима лише для платників ПДВ
+  document.querySelectorAll("#stagesTable .vat-col").forEach(function (cell) {
+    cell.classList.toggle("hidden", !isVatPayer);
+  });
 
   document.querySelectorAll("#stagesTable tbody tr").forEach(function (row) {
     const qty = parseNumber(
       row.querySelector('[name="deliverAmount[]"]')?.value,
     );
-    const price = parseNumber(
-      row.querySelector('[name="deliverCost[]"]')?.value,
-    );
-    const sum = qty * price;
-    const out = row.querySelector('[name="deliverVart[]"]');
+    const priceEl = row.querySelector('[name="deliverCost[]"]');
+    const noVatEl = row.querySelector('[name="deliverVart[]"]');
+    const withVatEl = row.querySelector('[name="deliverVatCost[]"]');
 
-    if (out) {
-      out.value = sum ? sum.toFixed(2) : "";
+    if (!priceEl || !noVatEl || !withVatEl) return;
+
+    let noVat;
+    let withVat;
+
+    if (isVatPayer) {
+      // Платник ПДВ: вводять «Вартість з ПДВ», решта рахується
+      noVatEl.readOnly = true;
+      noVatEl.placeholder = "Авто";
+      withVat = parseNumber(withVatEl.value);
+      noVat = withVat / (1 + VAT_RATE);
+      noVatEl.value = noVat ? noVat.toFixed(2) : "";
+    } else {
+      // Не платник ПДВ: вводять «Вартість без ПДВ», ціна рахується
+      noVatEl.readOnly = false;
+      noVatEl.placeholder = "Вартість";
+      noVat = parseNumber(noVatEl.value);
+      withVat = noVat * (1 + VAT_RATE);
     }
 
-    total += sum;
+    // Ціна за одиницю без ПДВ завжди рахується автоматично
+    priceEl.value = qty && noVat ? (noVat / qty).toFixed(2) : "";
+
+    totalNoVat += noVat;
+    totalWithVat += withVat;
   });
 
-  const isVatPayer = getRadioValue("contractorVat") === "Так";
-  const vat = total * 0.2;
+  document.getElementById("totalNoVat").value = totalNoVat
+    ? totalNoVat.toFixed(2)
+    : "";
 
-  document.getElementById("totalNoVat").value = total ? total.toFixed(2) : "";
   document.getElementById("totalVat").value =
-    isVatPayer && total ? vat.toFixed(2) : "";
+    isVatPayer && totalNoVat ? (totalWithVat - totalNoVat).toFixed(2) : "";
+
   document.getElementById("totalWithVat").value =
-    isVatPayer && total ? (total + vat).toFixed(2) : "";
+    isVatPayer && totalWithVat ? totalWithVat.toFixed(2) : "";
 
   showElementById("totalVatRow", isVatPayer);
   showElementById("totalWithVatRow", isVatPayer);
@@ -246,10 +293,13 @@ function addStageRow() {
             <input name="deliverCode[]" type="text" placeholder="Код">
         </td>
         <td>
-            <input name="deliverCost[]" type="text" placeholder="Ціна">
+            <input name="deliverCost[]" type="text" readonly placeholder="Авто">
         </td>
         <td>
-            <input name="deliverVart[]" type="text" readonly placeholder="Авто">
+            <input name="deliverVart[]" type="text" placeholder="Вартість">
+        </td>
+        <td class="vat-col hidden">
+            <input name="deliverVatCost[]" type="text" placeholder="З ПДВ">
         </td>
         <td>
             <button type="button" class="icon-button remove-row">×</button>
@@ -258,6 +308,7 @@ function addStageRow() {
 
   tbody.appendChild(row);
   renumberStages();
+  recalcDelivery();
 }
 
 function renumberStages() {
@@ -438,6 +489,7 @@ function collectItems() {
       code: get("deliverCode"),
       price: get("deliverCost"),
       total: get("deliverVart"),
+      totalWithVat: get("deliverVatCost"),
     };
   });
 }
@@ -469,12 +521,265 @@ function initDownloadWordButton() {
   }
 
   button.addEventListener("click", function () {
+    if (!validateForm()) {
+      return;
+    }
+
     const data = collectBriefData();
     const html = buildWordDocumentHtml(data);
 
     downloadWordDocument(html, data);
   });
 }
+
+/* ================================
+   VALIDATION (усі видимі поля обов'язкові)
+================================ */
+
+function isVisible(el) {
+  return !el.closest(".hidden");
+}
+
+function validateForm() {
+  const form = document.getElementById("briefForm");
+  const errors = [];
+
+  form.querySelectorAll(".field-error").forEach(function (el) {
+    el.classList.remove("field-error");
+  });
+
+  // Текстові поля, textarea, дати, email
+  form.querySelectorAll("input, textarea, select").forEach(function (el) {
+    if (["radio", "checkbox", "button", "file", "hidden"].includes(el.type)) {
+      return;
+    }
+
+    // Автоматичні (readonly) поля не перевіряємо
+    if (el.readOnly || el.disabled || el.dataset.optional === "true") return;
+    if (!isVisible(el)) return;
+
+    const emptyValue = !el.value.trim();
+    const badEmail = el.type === "email" && el.value && !el.checkValidity();
+
+    if (emptyValue || badEmail) {
+      el.classList.add("field-error");
+      errors.push(el);
+    }
+  });
+
+  // Радіокнопки: має бути обрано один варіант
+  const radioNames = new Set();
+
+  form.querySelectorAll('input[type="radio"]').forEach(function (radio) {
+    radioNames.add(radio.name);
+  });
+
+  radioNames.forEach(function (name) {
+    const radios = Array.from(
+      form.querySelectorAll(`input[type="radio"][name="${name}"]`),
+    );
+
+    if (!radios.some(isVisible)) return;
+
+    if (
+      !radios.some(function (r) {
+        return r.checked;
+      })
+    ) {
+      const box = radios[0].closest(".radio-group") || radios[0];
+      box.classList.add("field-error");
+      errors.push(box);
+    }
+  });
+
+  if (errors.length > 0) {
+    alert(
+      "Заповніть усі обов'язкові поля. Не заповнено: " +
+        errors.length +
+        ". Незаповнені поля підсвічено червоним.",
+    );
+
+    errors[0].scrollIntoView({ behavior: "smooth", block: "center" });
+
+    if (typeof errors[0].focus === "function") {
+      errors[0].focus({ preventScroll: true });
+    }
+
+    return false;
+  }
+
+  return true;
+}
+
+function initValidationReset() {
+  const form = document.getElementById("briefForm");
+
+  // Червоне підсвічування зникає, щойно поле змінили
+  form.addEventListener("input", function (event) {
+    event.target.classList.remove("field-error");
+  });
+
+  form.addEventListener("change", function (event) {
+    event.target.classList.remove("field-error");
+
+    const group = event.target.closest(".radio-group");
+    if (group) group.classList.remove("field-error");
+  });
+}
+
+/* ================================
+   AUTOSAVE (збереження чернетки)
+   Дані не пропадають при оновленні сторінки
+   (зокрема при "pull-to-refresh" на телефоні)
+================================ */
+
+const DRAFT_KEY =
+  "brief_supply_basic_draft_v1:" + location.host + location.pathname;
+
+const DRAFT_TABLES = [
+  { id: "stagesTable", addRow: addStageRow, renumber: renumberStages },
+  { id: "paymentsTable", addRow: addPaymentRow, renumber: renumberPayments },
+];
+
+function collectDraft() {
+  const form = document.getElementById("briefForm");
+  const state = { fields: {}, radios: {}, tables: {} };
+
+  Array.from(form.elements).forEach(function (el) {
+    if (el.closest("table") || el.type === "file" || el.type === "button") {
+      return;
+    }
+
+    if (el.type === "radio") {
+      if (el.checked) state.radios[el.name] = el.value;
+    } else if (el.id) {
+      state.fields[el.id] = el.value;
+    }
+  });
+
+  DRAFT_TABLES.forEach(function (table) {
+    const rows = document.querySelectorAll("#" + table.id + " tbody tr");
+
+    state.tables[table.id] = Array.from(rows).map(function (row) {
+      const values = {};
+
+      row.querySelectorAll("input, textarea").forEach(function (el) {
+        values[el.name] = el.value;
+      });
+
+      return values;
+    });
+  });
+
+  return state;
+}
+
+function saveDraft() {
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(collectDraft()));
+  } catch (error) {
+    console.warn("Cannot save draft:", error);
+  }
+}
+
+function restoreDraft() {
+  let state;
+
+  try {
+    state = JSON.parse(localStorage.getItem(DRAFT_KEY));
+  } catch (error) {
+    return;
+  }
+
+  if (!state) return;
+
+  // Звичайні поля
+  Object.keys(state.fields || {}).forEach(function (id) {
+    const el = document.getElementById(id);
+    if (el) el.value = state.fields[id];
+  });
+
+  // Радіокнопки (change запускає показ/приховування залежних полів)
+  Object.keys(state.radios || {}).forEach(function (name) {
+    document
+      .querySelectorAll(`input[type="radio"][name="${name}"]`)
+      .forEach(function (radio) {
+        if (radio.value === state.radios[name]) {
+          radio.checked = true;
+          radio.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+      });
+  });
+
+  // Таблиці
+  DRAFT_TABLES.forEach(function (table) {
+    const savedRows = (state.tables || {})[table.id];
+    if (!savedRows || savedRows.length === 0) return;
+
+    const tbody = document.querySelector("#" + table.id + " tbody");
+
+    while (tbody.rows.length < savedRows.length) {
+      table.addRow();
+    }
+
+    while (tbody.rows.length > savedRows.length) {
+      tbody.deleteRow(tbody.rows.length - 1);
+    }
+
+    savedRows.forEach(function (values, index) {
+      const row = tbody.rows[index];
+
+      Object.keys(values).forEach(function (name) {
+        const el = row.querySelector(`[name="${name}"]`);
+        if (el) el.value = values[name];
+      });
+    });
+
+    table.renumber();
+  });
+
+  // Перерахунок після відновлення значень
+  recalcDelivery();
+  updateVatHeaders();
+}
+
+function initDraftAutosave() {
+  const form = document.getElementById("briefForm");
+  if (!form) return;
+
+  restoreDraft();
+
+  let timer = null;
+  const scheduleSave = function () {
+    clearTimeout(timer);
+    timer = setTimeout(saveDraft, 300);
+  };
+
+  form.addEventListener("input", scheduleSave);
+  form.addEventListener("change", scheduleSave);
+
+  // Додавання / видалення рядків таблиць
+  form.addEventListener("click", function (event) {
+    if (event.target.closest(".remove-row, .secondary-button")) {
+      scheduleSave();
+    }
+  });
+
+  const clearBtn = document.getElementById("clearDraftBtn");
+
+  if (clearBtn) {
+    clearBtn.addEventListener("click", function () {
+      if (confirm("Очистити всі введені дані?")) {
+        localStorage.removeItem(DRAFT_KEY);
+        location.reload();
+      }
+    });
+  }
+}
+
+/* ================================
+   WORD DOCUMENT
+================================ */
 
 function buildWordDocumentHtml(data) {
   const isVatPayer = data.contractor.contractorVat === "Так";
@@ -651,7 +956,7 @@ function buildWordDocumentHtml(data) {
 
     <h2>3. Умови поставки</h2>
 
-    ${buildItemsWordTable(data.items)}
+    ${buildItemsWordTable(data.items, isVatPayer)}
 
     <table>
         <tr>
@@ -698,7 +1003,7 @@ function buildWordDocumentHtml(data) {
 
     <h2>4. Порядок оплати</h2>
 
-    ${buildPaymentsWordTable(data.payments)}
+    ${buildPaymentsWordTable(data.payments, isVatPayer)}
 
     <h2>5. Додаткові та ризикові умови</h2>
 
@@ -734,7 +1039,7 @@ function buildWordDocumentHtml(data) {
     `;
 }
 
-function buildItemsWordTable(items) {
+function buildItemsWordTable(items, isVatPayer) {
   if (!items || items.length === 0) {
     return "<p>Позиції не заповнені.</p>";
   }
@@ -751,6 +1056,7 @@ function buildItemsWordTable(items) {
                 <td>${escapeHtml(item.code)}</td>
                 <td>${escapeHtml(item.price)}</td>
                 <td>${escapeHtml(item.total)}</td>
+                ${isVatPayer ? `<td>${escapeHtml(item.totalWithVat)}</td>` : ""}
             </tr>
         `;
   });
@@ -766,6 +1072,7 @@ function buildItemsWordTable(items) {
                     <th>Код УКТЗЕД</th>
                     <th>Ціна за од. без ПДВ, грн.</th>
                     <th>Вартість без ПДВ, грн.</th>
+                    ${isVatPayer ? "<th>Вартість з ПДВ, грн.</th>" : ""}
                 </tr>
             </thead>
 
@@ -776,7 +1083,7 @@ function buildItemsWordTable(items) {
     `;
 }
 
-function buildPaymentsWordTable(payments) {
+function buildPaymentsWordTable(payments, isVatPayer) {
   if (!payments || payments.length === 0) {
     return "<p>Графік оплат не заповнений.</p>";
   }
@@ -799,7 +1106,7 @@ function buildPaymentsWordTable(payments) {
             <thead>
                 <tr>
                     <th>№</th>
-                    <th>Сума</th>
+                    <th>${isVatPayer ? "Сума з ПДВ" : "Сума"}</th>
                     <th>Дата</th>
                     <th>Коментар</th>
                 </tr>
